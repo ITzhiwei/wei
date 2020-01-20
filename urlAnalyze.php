@@ -46,7 +46,7 @@
          */
         public static function suffix($urlPathInfo){
             //设置受支持的后缀
-            $suffixOk = Config::pull('route.url_html_suffix');
+            $suffixOk = Config::pull('route.urlHtmlSuffix');
             $pathInfoLen = strlen($urlPathInfo);
             $newPathInfo = $urlPathInfo;
             foreach($suffixOk as $value){
