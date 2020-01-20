@@ -10,11 +10,35 @@
          * 返回数组 0=>/顶级/控制器/方法   1=>参数
          */
         public static function analyze(){
-            $urlPathInfo = $_SERVER["QUERY_STRING"];
+            $urlPathInfo = self::customize($_SERVER["QUERY_STRING"]);
             //格式： new /顶层/控制器/方法   后面是参数
             $pathInfo = self::suffix($urlPathInfo);
             $objAndParam = self::getNewObj($pathInfo);
             return $objAndParam;
+        }
+
+        /**
+         * 自定义路由支持
+         * @param $urlPathInfo
+         * @return string
+         */
+        protected static function customize($urlPathInfo){
+            $customize = Config::pull('route.urlHtmlCustomize');
+            foreach ($customize as $key=>$value){
+                //检测是否存在冒号":"  user/search   user/search/:id => index/index/user/search    user/:age/:name => index/index/user/index     age/18/name/张三
+                $startPosition = strpos($key, ':');
+                if($startPosition !== false){
+                    //存在，先将前面非“:”部分转化
+
+                }else{
+                    //不存在 :  直接查看 url 是否符合
+                    $len = strlen($key);
+                    if(substr($urlPathInfo, 0, $len-1) == $key){
+                        $urlPathInfo = $value.substr($urlPathInfo, $len);
+                    }
+                }
+            }
+            return $urlPathInfo;
         }
         
         /**
