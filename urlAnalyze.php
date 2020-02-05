@@ -12,9 +12,13 @@
          */
         public static function analyze(){
             $urlPathInfo = $_SERVER["QUERY_STRING"];
-            //格式： new /顶层/控制器/方法   后面是参数
+            //静态识别
             $pathInfo = self::suffix($urlPathInfo);
+            //自定义路由处理
             $pathInfo = self::customizeAction($pathInfo);
+            //域名指定入口，如果是指定域名，自动在 $pathInfo 前加上入口
+            $pathInfo = self::urlEntrance($pathInfo);
+            //分析域名，返回需要new的对象名和参数  $objAndParam[0] = /index/indexa/indexb/indexc  index是项目入口  indexa 是 项目的分支  indexb 是控制器  indexc是调用控制的方法名
             $objAndParam = self::getNewObj($pathInfo);
             return $objAndParam;
         }
@@ -22,16 +26,20 @@
         /**
          * 自定义路由处理
          * @param $urlPathInfo
-         * @return $urlPathInfo
+         * @return string $urlPathInfo
          */
         protected static function customizeAction($urlPathInfo){
-            $rule = Config::pull('route.urlHtmlCustomize');
+            $ruleAll = Config::pull('route.urlHtmlCustomize');
+            $rule = $ruleAll['*'];
+            if(isset($ruleAll[$_SERVER['HTTP_HOST']])) {
+                $rule = $ruleAll[$_SERVER['HTTP_HOST']] + $rule;
+            }
             foreach ($rule as $key=>$value){
                 if(substr($key, 0, 1) != '/'){
                     $key = '/'.$key;
                 }
                 $maohaoStr = '';
-                //检测是否存在":"符号     ['user/:id/:name'=>'/index/index/user/index', 'user'=>'/inde/index/user']  /user/5    user/getInfo
+                //检测是否存在":"符号     ['user/:age/:name'=>'/index/user/index', 'article'=>'/index/article/index']   访问URL=> /user/12/娜娜    article
                 if(strstr($key, ':')){
                     $maohaoStr = substr($key, strpos($key, ':'));
                     //   user/:id  截成 user 赋值给 $key
@@ -53,6 +61,22 @@
             }
             return $urlPathInfo;
         }
+
+        /**
+         * 域名指定入口
+         * @param string $urlPathInfo
+         * @return string $urlPathInfo
+         */
+        protected static function urlEntrance($urlPathInfo){
+            $urlEntranceData =Config::pull('route.urlEntranceData');
+            if(isset($urlEntranceData[$_SERVER['HTTP_HOST']])){
+                $urlPathInfo = $urlEntranceData[$_SERVER['HTTP_HOST']].$urlPathInfo;
+            }else{
+                $urlPathInfo = $urlEntranceData['*'].$urlPathInfo;
+            }
+            return $urlPathInfo;
+        }
+
         
         /**
          * 伪静态支持
@@ -153,9 +177,5 @@
         
         
     }
-/*
-    $a = new urlAnalyze;
 
-    print_r($a->analyze());
-*/
 ?>
