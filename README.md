@@ -1,9 +1,19 @@
 # wei
 框架核心部分-其余部分独立放composer
-# 入口
-唯一入口
+# 访问入口
+程序唯一入口：public/index.php  
 # 路由
-自动路由 + 可配置伪静态
+自动路由 + 可配置伪静态 + 自定义路由设置  
+项目默认唯一目录入口：application，可以根据多个域名配置多个一级目录入口  
+```
+//域名指定一级目录入口
+'urlEntranceData' => [
+    //所有域名默认
+    '*'=>'application',
+    //指定入口
+    'www.wei.com'=>'application2'
+ ]
+```
 # 工厂自助管理类
 自助单例管理类，可设置别名重新实例化  
 在获取类时，使用 wei\Factory::get($className) 可进行注入并自动单例管理，可用别名new新的类如::get($className , 'two')   
