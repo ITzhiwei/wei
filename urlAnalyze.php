@@ -14,9 +14,8 @@
             $urlPathInfo = $_SERVER["QUERY_STRING"];
             //格式： new /顶层/控制器/方法   后面是参数
             $pathInfo = self::suffix($urlPathInfo);
-            $pathInfo = self::ruleAction($pathInfo);
+            $pathInfo = self::customizeAction($pathInfo);
             $objAndParam = self::getNewObj($pathInfo);
-            var_dump($objAndParam);
             return $objAndParam;
         }
 
@@ -25,7 +24,7 @@
          * @param $urlPathInfo
          * @return $urlPathInfo
          */
-        protected static function ruleAction($urlPathInfo){
+        protected static function customizeAction($urlPathInfo){
             $rule = Config::pull('route.urlHtmlCustomize');
             foreach ($rule as $key=>$value){
                 if(substr($key, 0, 1) != '/'){
@@ -52,7 +51,6 @@
                     break;
                 }
             }
-
             return $urlPathInfo;
         }
         
