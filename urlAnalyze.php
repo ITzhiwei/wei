@@ -16,7 +16,7 @@
             $pathInfo = self::suffix($urlPathInfo);
             //自定义路由处理
             $pathInfo = self::customizeAction($pathInfo);
-            //域名指定入口，如果是指定域名，自动在 $pathInfo 前加上入口
+            //域名指定入口，如果是指定域名，自动在 $pathInfo 前加上入口  + 自定义入口
             $pathInfo = self::urlEntrance($pathInfo);
             //分析域名，返回需要new的对象名和参数  $objAndParam[0] = /index/indexa/indexb/indexc  index是项目入口  indexa 是 项目的分支  indexb 是控制器  indexc是调用控制的方法名
             $objAndParam = self::getNewObj($pathInfo);
@@ -63,16 +63,33 @@
         }
 
         /**
-         * 域名指定入口
+         * 域名指定入口 + 自定义入口
          * @param string $urlPathInfo
          * @return string $urlPathInfo
          */
         protected static function urlEntrance($urlPathInfo){
-            $urlEntranceData =Config::pull('route.urlEntranceData');
+            //自定义一级目录入口
+            if(!($urlPathInfo == '' || $urlPathInfo == '/')) {
+                $assignEntranceData = Config::pull('route.assignEntranceData');
+                //获取 pathInfo 中第2个 / 的位置；  因为
+                $a = strpos(substr($urlPathInfo, 1), '/');
+                if($a) {//  第一个pathInfo参数后面还有 / 符号的情况
+                    $onePath = substr($urlPathInfo, 1, strpos(substr($urlPathInfo, 1), '/', 1));
+                }else{
+                    $onePath = substr($urlPathInfo, 1);
+                }
+                if( isset($assignEntranceData[$onePath]) ){
+                    if( $assignEntranceData[$onePath][0] || in_array($_SERVER['HTTP_HOST'], $assignEntranceData[$onePath][2]) ){
+                        return $assignEntranceData[$onePath][1] . substr($urlPathInfo, strlen($onePath)+1);
+                    }
+                }
+            }
+            //域名指定一级目录入口
+            $urlEntranceData = Config::pull('route.urlEntranceData');
             if(isset($urlEntranceData[$_SERVER['HTTP_HOST']])){
                 $urlPathInfo = $urlEntranceData[$_SERVER['HTTP_HOST']].$urlPathInfo;
             }else{
-                $urlPathInfo = $urlEntranceData['*'].$urlPathInfo;
+                $urlPathInfo = 'index'.$urlPathInfo;
             }
             return $urlPathInfo;
         }
