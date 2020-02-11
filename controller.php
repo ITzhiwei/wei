@@ -49,7 +49,9 @@
 
         public function run(){
             $this->{$this->fucName}();
-            $this->userAccessEndExecute();
+            if($this->fucArr != []) {
+                $this->userAccessEndExecute();
+            }
         }
         
         /**
