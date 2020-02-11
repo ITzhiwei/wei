@@ -28,13 +28,28 @@
         /**
          * controller constructor.
          * @param array $param 正常url访问时从url内获取的参数
-         * @param array $injectParam 在控制器内 new 其他控制器类时手动注入的参数
-         * @param array $injectPost
+         * @param array $injectPost 在控制器内 new 其他控制器类时手动注入的 Post 参数，原控制器的 post 参数不被继承
+         * @param array $routing 从url中获的项目入口、次目录、控制器、方法的参数
          */
-        public function __construct($param = [], $injectParam = [], $injectPost = []){
+        public function __construct($param = [], $injectPost = [], $routing = []){
             $this->param = $param;
             $this->post = $_POST;
+            if($injectPost != []){
+                $this->post = $injectPost;
+            };
+            if($routing != []){
+                $this->fucName = $routing[3];
+            }else{
+                $info = urlAnalyze::analyze();
+                $pathArr = explode('/', substr($info[0], 1));
+                $this->fucName = $pathArr[3];
+            }
             $this->dataTransform();
+        }
+
+        public function run(){
+            $this->{$this->fucName}();
+            $this->userAccessEndExecute();
         }
         
         /**
@@ -150,6 +165,8 @@
                 exit("不存在 ../view/$fucName.view.php 视图文件");
             }
         }
+
+
 
 
         /**
