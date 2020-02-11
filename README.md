@@ -38,8 +38,16 @@
 在获取类时，使用 wei\Factory::get($className) 可进行注入并自动单例管理，可用别名new新的类如::get($className , 'two')   
 # 控制器基类
 json 统一返回功能  
-数据转换功能方法、指定特殊字段自动转化  
+数据转换功能方法  
+指定特殊字段自动转化  
+view文件调用  
 用户请求结束后在服务器继续执行相关代码（在子控制器类中把相关代码以匿名函数方式放进 $this->fucArr 即可）
+````
+$this->fucArr[] = function() use ($phoneArr){
+                        //用户请求结束后，服务器继续执行耗时的任务
+                        ...
+                  }
+````
 # 配置类
 安装 composer require lipowei/config   
 可获取 vendor 同级目录下 config 目录任意配置文件的参数   
