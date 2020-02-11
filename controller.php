@@ -19,6 +19,9 @@
         //子类添加需要转化的key
         protected $childClassDataType = [];
 
+        //url所指向的方法
+        public $fucName;
+
         //程序结束后服务器继续执行 - 函数   0=>function
         public $fucArr = [];
 
@@ -122,6 +125,30 @@
                     break;
             }
             return $data;
+        }
+
+        /**
+         * 视图文件加载
+         * @param array $data
+         * @param string $viewName
+         */
+        public function view($data = null, $viewName = null){
+            if($viewName == null) {
+                $fucName = $this->fucName;
+            }else{
+                $fucName = $viewName;
+            }
+            $dirEntranceOld = substr(static::class, 0, strpos(static::class, '\\'));
+            $dirEntrance = \weiLoader::$type[$dirEntranceOld];
+            $removeHead = substr(static::class, strpos(static::class, '\\')+1);
+            $removeFoot = substr($removeHead, 0, strripos($removeHead, '\\'));
+            $viewFile = $dirEntrance.$removeFoot."/../view/$fucName.view.php";
+            $viewFile = str_replace('\\', '/', $viewFile);
+            if(is_file($viewFile)) {
+                include $viewFile;
+            }else{
+                exit("不存在 ../view/$fucName.view.php 视图文件");
+            }
         }
 
 
