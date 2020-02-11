@@ -158,6 +158,9 @@
          * @param string $data
          */
         protected function json($code = 200, $msg = '操作成功', $data = ''){
+            if(is_array($code)){
+                $code = json_encode($code, JSON_UNESCAPED_UNICODE);
+            }
             if((!is_int($code)) && strlen($code)>4) {
                 $return['code'] = 200;
                 $return['msg'] = '操作成功';
