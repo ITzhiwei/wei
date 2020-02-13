@@ -159,12 +159,13 @@
             $dirEntrance = \weiLoader::$type[$dirEntranceOld];
             $removeHead = substr(static::class, strpos(static::class, '\\')+1);
             $removeFoot = substr($removeHead, 0, strripos($removeHead, '\\'));
-            $viewFile = $dirEntrance.$removeFoot."/../view/$fucName.view.php";
+            $controller = substr($removeHead, strripos($removeHead, '\\')+1);
+            $viewFile = $dirEntrance.$removeFoot."/../view/$controller/$fucName.view.php";
             $viewFile = str_replace('\\', '/', $viewFile);
             if(is_file($viewFile)) {
                 include $viewFile;
             }else{
-                exit("不存在 ../view/$fucName.view.php 视图文件");
+                exit("不存在 ../view/$controller/$fucName.view.php 视图文件");
             }
         }
 
