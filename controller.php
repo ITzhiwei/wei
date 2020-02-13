@@ -19,9 +19,11 @@
         //子类添加需要转化的key
         protected $childClassDataType = [];
 
-        //url所指向的方法
-        public $fucName;
 
+        //url的路由信息，[0]一级目录入口（映射前） [1]二级目录入口  [2]控制器  [3]所调用的方法
+        public $route;
+        //当非url访问时（url访问的控制器调用其他地方的控制器）,$route只存在 [0] [1] [2]，第[3]需要手动传入后再启动run()，默认值是 index
+        public $fucName = 'index';
         //程序结束后服务器继续执行 - 函数   0=>function
         public $fucArr = [];
 
@@ -29,29 +31,46 @@
          * controller constructor.
          * @param array $param 正常url访问时从url内获取的参数
          * @param array $injectPost 在控制器内 new 其他控制器类时手动注入的 Post 参数，原控制器的 post 参数不被继承
-         * @param array $routing 从url中获的项目入口、次目录、控制器、方法的参数
+         * @param array $route 从url中获的项目入口、次目录、控制器、方法的参数
          */
-        public function __construct($param = [], $injectPost = [], $routing = []){
+        public function __construct($param = [], $injectPost = [], $route = []){
             $this->param = $param;
             $this->post = $_POST;
             if($injectPost != []){
                 $this->post = $injectPost;
             };
-            if($routing != []){
-                $this->fucName = $routing[3];
+            if($route != []){
+                $this->route = $route;
             }else{
                 $info = urlAnalyze::analyze();
                 $pathArr = explode('/', substr($info[0], 1));
-                $this->fucName = $pathArr[3];
+                $this->route = [$pathArr[0], $pathArr[1], $pathArr[3]];
             }
             $this->dataTransform();
+
+            //执行前置中间件
+            $res = $this->middlewareBefore();
+            $this->param = $res['param'];
+            $this->post = $res['post'];
+
         }
 
         public function run(){
-            $this->{$this->fucName}();
-            if($this->fucArr != []) {
+            $route = $this->route;
+            if(isset($route[3])){
+                $fucName = $route[3];
+            }else{
+                $fucName = $this->fucName;
+            }
+
+            $res = $this->$fucName();
+
+            //执行后置中间件
+            $this->middlewareAfter();
+            if ($this->fucArr != []) {
                 $this->userAccessEndExecute();
             }
+
         }
         
         /**
@@ -145,22 +164,37 @@
         }
 
         /**
+         * 前置中间件，一次执行一级目录中间件（如application）、二级目录中间件（如index）
+         */
+        public function middlewareBefore(){
+
+            return ['param'=>$this->param, 'post'=>$this->post];
+        }
+
+        /**
+         * 后置中间件
+         */
+        public function middlewareAfter(){
+
+        }
+
+        /**
          * 视图文件加载
          * @param array $data
          * @param string $viewName
          */
         public function view($data = null, $viewName = null){
+            $route = $this->route;
             if($viewName == null) {
-                $fucName = $this->fucName;
+                $fucName = $route[3];
             }else{
                 $fucName = $viewName;
             }
-            $dirEntranceOld = substr(static::class, 0, strpos(static::class, '\\'));
-            $dirEntrance = \weiLoader::$type[$dirEntranceOld];
-            $removeHead = substr(static::class, strpos(static::class, '\\')+1);
-            $removeFoot = substr($removeHead, 0, strripos($removeHead, '\\'));
-            $controller = substr($removeHead, strripos($removeHead, '\\')+1);
-            $viewFile = $dirEntrance.$removeFoot."/../view/$controller/$fucName.view.php";
+            //通过映射得到真实的一级目录入口
+            $oneEntrance = \weiLoader::$type[$route[0]];
+            $twoEntrance = $route[1];
+            $controller = $route[2];
+            $viewFile = $oneEntrance.$twoEntrance."/view/$controller/$fucName.view.php";
             $viewFile = str_replace('\\', '/', $viewFile);
             if(is_file($viewFile)) {
                 include $viewFile;
@@ -168,6 +202,8 @@
                 exit("不存在 ../view/$controller/$fucName.view.php 视图文件");
             }
         }
+
+
 
 
 
