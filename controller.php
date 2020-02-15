@@ -1,7 +1,7 @@
 <?php
 
     namespace wei;
-   
+
     class controller{
         
         //url pathInfo 参数
@@ -20,13 +20,17 @@
         protected $childClassDataType = [];
 
 
-        //url的路由信息，[0]一级目录入口（映射前） [1]二级目录入口  [2]控制器  [3]所调用的方法
+        //  url的路由信息，[0]一级目录入口（映射前） [1]二级目录入口  [2]控制器  [3]所调用的方法
+        //  注意：一般来说，一个一级目录就是一个项目应用，用户端后台管理端可以放在二级目录入口；当然，如果你喜欢，用俩个一级目录来区分用户端和后台管理端也是可以的
         public $route;
         //当非url访问时（url访问的控制器调用其他地方的控制器）,$route只存在 [0] [1] [2]，第[3]需要手动传入后再启动run()，默认值是 index
         public $fucName = 'index';
         //程序结束后服务器继续执行 - 函数   0=>function
         public $fucArr = [];
-
+        //是否执行前置中间件，提供给URL访问的 A控制器 内调用 B控制器 时能 B 能选择是否关闭前置中间件
+        public $runMiddlewareBefore = true;
+        //是否执行后置中间件，此处和前置中间件作用一样
+        public $runMiddlewareAfter = true;
         /**
          * controller constructor.
          * @param array $param 正常url访问时从url内获取的参数
@@ -47,26 +51,24 @@
                 $this->route = [$pathArr[0], $pathArr[1], $pathArr[3]];
             }
             $this->dataTransform();
-
-            //执行前置中间件
-            $res = $this->middlewareBefore();
-            $this->param = $res['param'];
-            $this->post = $res['post'];
-
         }
 
         public function run(){
+            if($this->runMiddlewareBefore) {
+                //执行前置中间件
+                $this->middlewareBefore();
+            }
             $route = $this->route;
             if(isset($route[3])){
                 $fucName = $route[3];
             }else{
                 $fucName = $this->fucName;
             }
-
             $res = $this->$fucName();
-
-            //执行后置中间件
-            $this->middlewareAfter();
+            if($this->runMiddlewareAfter) {
+                //执行后置中间件
+                $this->middlewareAfter($res);
+            }
             if ($this->fucArr != []) {
                 $this->userAccessEndExecute();
             }
@@ -164,18 +166,67 @@
         }
 
         /**
-         * 前置中间件，一次执行一级目录中间件（如application）、二级目录中间件（如index）
+         * 前置中间件，依次执行一级目录中间件（如application）、二级目录中间件（如index）
          */
         public function middlewareBefore(){
+            $oldParam = $this->param;
+            $oldPost = $this->post;
+            $route = $this->route;
 
-            return ['param'=>$this->param, 'post'=>$this->post];
+            //全局中间件，所有控制器都会执行
+            $FilePath = __DIR__.'/../middleware/middlewareBefore.php';
+            if(is_file($FilePath)) {
+                include_once $FilePath;
+                $middlewareBefore = new \middlewareBefore;
+                //执行全局中间件
+                list($this->param, $this->post) = $middlewareBefore->handle($this, $oldParam, $oldPost);
+            }
+            //先判断一级目录中间件是否存在
+            $oneFilePath = \weiLoader::$type[$route[0]].'middleware/middlewareBefore.php';
+            if(is_file($oneFilePath)) {
+                $className = $route[0].'\\middleware\\middlewareBefore';
+                $oneMiddlewareBefore = new $className;
+                //执行一级目录中间件，即该目录下的所有控制器都会执行该中间件
+                list($this->param, $this->post) = $oneMiddlewareBefore->handle($this, $oldParam, $oldPost);
+            }
+            //二级目录中间件
+            $twoFilePath = \weiLoader::$type[$route[0]].$route[1].'/middleware/middlewareBefore.php';
+            if(is_file($twoFilePath)) {
+                $className = $route[0] . '\\' . $route[1] . '\\middleware\\middlewareBefore';
+                $twoMiddlewareBefore = new $className;
+                //执行二级目录中间件，即该目录下的所有控制器都会执行该中间件
+                list($this->param, $this->post) = $twoMiddlewareBefore->handle($this, $oldParam, $oldPost);
+            }
         }
 
         /**
          * 后置中间件
+         * @param mixed $res 控制器返回内容
          */
-        public function middlewareAfter(){
+        public function middlewareAfter($res){
+            $oldRes = $res;
+            $route = $this->route;
 
+            //全局中间件，所有控制器都会执行
+            $FilePath = __DIR__.'/../middleware/middlewareAfter.php';
+            if(is_file($FilePath)) {
+                include_once $FilePath;
+                $middlewareAfter = new \middlewareAfter;
+                $res = $middlewareAfter->handle($this, $res);
+            }
+
+            $oneFilePath = \weiLoader::$type[$route[0]].'middleware/middlewareAfter.php';
+            if(is_file($oneFilePath)) {
+                $className = $route[0].'\\middleware\\middlewareAfter';
+                $oneMiddlewareAfter = new $className;
+                $res = $oneMiddlewareAfter->handle($this, $res, $oldRes);
+            }
+            $twoFilePath = \weiLoader::$type[$route[0]].$route[1].'/middleware/middlewareAfter.php';
+            if(is_file($twoFilePath)) {
+                $className = $route[0] . '\\' . $route[1] . '\\middleware\\middlewareAfter';
+                $twoMiddlewareAfter = new $className;
+                $twoMiddlewareAfter->handle($this, $res, $oldRes);
+            }
         }
 
         /**
