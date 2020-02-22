@@ -254,8 +254,12 @@
             }
         }
 
-
-
+        /**
+         * @param string $urlParam
+         */
+        public function href($urlParam){
+            header("Location:$urlParam");
+        }
 
 
 
