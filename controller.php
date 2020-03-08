@@ -269,20 +269,21 @@
          * @param string $data
          */
         protected function json($code = 200, $msg = '操作成功', $data = ''){
-            if(is_array($code)){
-                $code = json_encode($code, JSON_UNESCAPED_UNICODE);
-            }
-            if((!is_int($code)) && strlen($code)>4) {
-                $return['code'] = 200;
-                $return['msg'] = '操作成功';
-                $return['data'] = $code;
+                if (is_array($code)) {
+                    $return['code'] = 200;
+                    $return['msg'] = '操作成功';
+                    $return['data'] = $code;
+                } else {
+                    if (is_string($code) && (int)$code != $code) {
+                        $return['code'] = 400;
+                        $return['msg'] = $code;
+                    } else {
+                        $return['code'] = $code;
+                        $return['msg'] = $msg;
+                        $return['data'] = $data;
+                    }
+                }
                 echo json_encode($return, JSON_UNESCAPED_UNICODE);
-            }else{
-                $return['code'] = $code;
-                $return['msg'] = $msg;
-                $return['data'] = $data;
-                echo json_encode($return, JSON_UNESCAPED_UNICODE);
-            }
         }
 
         /**
