@@ -7,7 +7,8 @@
          * 路径映射白名单，动态配置其他路由在config/route.php里面
          */
         public static $type = [
-            'wei'=>__DIR__.'/'
+            'wei'=>__DIR__.'/',
+            'extend'=>__DIR__.'/../extend/',
         ];
 
         /**
