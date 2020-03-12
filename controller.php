@@ -274,7 +274,7 @@
                     $return['msg'] = '操作成功';
                     $return['data'] = $code;
                 } else {
-                    if (is_string($code) && (int)$code != $code) {
+                    if (is_string($code) && strlen((int)$code) != strlen($code)) {
                         $return['code'] = 400;
                         $return['msg'] = $code;
                     } else {
