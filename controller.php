@@ -174,25 +174,25 @@
             $route = $this->route;
 
             //全局中间件，所有控制器都会执行
-            $FilePath = __DIR__.'/../middleware/middlewareBefore.php';
+            $FilePath = __DIR__.'/../hook/hookBefore.php';
             if(is_file($FilePath)) {
                 include_once $FilePath;
-                $middlewareBefore = new \middlewareBefore;
+                $middlewareBefore = new \hookBefore;
                 //执行全局中间件
                 list($this->param, $this->post) = $middlewareBefore->handle($this, $oldParam, $oldPost);
             }
             //先判断一级目录中间件是否存在
-            $oneFilePath = \weiLoader::$type[$route[0]].'middleware/middlewareBefore.php';
+            $oneFilePath = \weiLoader::$type[$route[0]].'hook/hookBefore.php';
             if(is_file($oneFilePath)) {
-                $className = $route[0].'\\middleware\\middlewareBefore';
+                $className = $route[0].'\\hook\\hookBefore';
                 $oneMiddlewareBefore = new $className;
                 //执行一级目录中间件，即该目录下的所有控制器都会执行该中间件
                 list($this->param, $this->post) = $oneMiddlewareBefore->handle($this, $oldParam, $oldPost);
             }
             //二级目录中间件
-            $twoFilePath = \weiLoader::$type[$route[0]].$route[1].'/middleware/middlewareBefore.php';
+            $twoFilePath = \weiLoader::$type[$route[0]].$route[1].'/hook/hookBefore.php';
             if(is_file($twoFilePath)) {
-                $className = $route[0] . '\\' . $route[1] . '\\middleware\\middlewareBefore';
+                $className = $route[0] . '\\' . $route[1] . '\\hook\\hookBefore';
                 $twoMiddlewareBefore = new $className;
                 //执行二级目录中间件，即该目录下的所有控制器都会执行该中间件
                 list($this->param, $this->post) = $twoMiddlewareBefore->handle($this, $oldParam, $oldPost);
@@ -208,22 +208,22 @@
             $route = $this->route;
 
             //全局中间件，所有控制器都会执行
-            $FilePath = __DIR__.'/../middleware/middlewareAfter.php';
+            $FilePath = __DIR__.'/../hook/hookAfter.php';
             if(is_file($FilePath)) {
                 include_once $FilePath;
-                $middlewareAfter = new \middlewareAfter;
+                $middlewareAfter = new \hookAfter;
                 $res = $middlewareAfter->handle($this, $res);
             }
 
-            $oneFilePath = \weiLoader::$type[$route[0]].'middleware/middlewareAfter.php';
+            $oneFilePath = \weiLoader::$type[$route[0]].'hook/hookAfter.php';
             if(is_file($oneFilePath)) {
-                $className = $route[0].'\\middleware\\middlewareAfter';
+                $className = $route[0].'\\hook\\hookAfter';
                 $oneMiddlewareAfter = new $className;
                 $res = $oneMiddlewareAfter->handle($this, $res, $oldRes);
             }
-            $twoFilePath = \weiLoader::$type[$route[0]].$route[1].'/middleware/middlewareAfter.php';
+            $twoFilePath = \weiLoader::$type[$route[0]].$route[1].'/hook/hookAfter.php';
             if(is_file($twoFilePath)) {
-                $className = $route[0] . '\\' . $route[1] . '\\middleware\\middlewareAfter';
+                $className = $route[0] . '\\' . $route[1] . '\\hook\\hookAfter';
                 $twoMiddlewareAfter = new $className;
                 $twoMiddlewareAfter->handle($this, $res, $oldRes);
             }
