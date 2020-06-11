@@ -141,7 +141,7 @@
                 $action4 = !empty($infoArr[3])?$infoArr[3]:'index';
                 
                 list($action1, $action2, $action3, $action4) = self::filter([$action1, $action2, $action3, $action4]);
-                
+                $action3 = ucfirst($action3);
                 $newObj  = "/$action1/$action2/$action3/$action4";
 
                 if(count($infoArr) > 4){
@@ -173,7 +173,7 @@
                     }
                 }
             }else{
-                $newObj = '/index/index/index/index';
+                $newObj = '/index/index/Index/index';
             }
 
             return [$newObj, $param];
