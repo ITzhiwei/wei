@@ -27,10 +27,10 @@
         public $fucName = 'index';
         //程序结束后服务器继续执行 - 函数   0=>function
         public $fucArr = [];
-        //是否执行前置中间件，提供给URL访问的 A控制器 内调用 B控制器 时能 B 能选择是否关闭前置中间件
-        public $runMiddlewareBefore = true;
-        //是否执行后置中间件，此处和前置中间件作用一样
-        public $runMiddlewareAfter = true;
+        //是否执行前置钩子类，提供给URL访问的 A控制器 内调用 B控制器 时能 B 能选择是否关闭前置执行
+        public $runHookBefore = true;
+        //是否执行后置钩子类，此处和前置钩子类作用一样
+        public $runHookAfter = true;
         /**
          * controller constructor.
          * @param array $param 正常url访问时从url内获取的参数
@@ -54,9 +54,9 @@
         }
 
         public function run(){
-            if($this->runMiddlewareBefore) {
-                //执行前置中间件
-                $this->middlewareBefore();
+            if($this->runHookBefore) {
+                //执行前置钩子
+                $this->hookBefore();
             }
             $route = $this->route;
             if(isset($route[3])){
@@ -65,9 +65,9 @@
                 $fucName = $this->fucName;
             }
             $res = $this->$fucName();
-            if($this->runMiddlewareAfter) {
-                //执行后置中间件
-                $this->middlewareAfter($res);
+            if($this->runHookAfter) {
+                //执行后置钩子
+                $this->hookAfter($res);
             }
             if ($this->fucArr != []) {
                 $this->userAccessEndExecute();
@@ -166,66 +166,66 @@
         }
 
         /**
-         * 前置中间件，依次执行一级目录中间件（如application）、二级目录中间件（如index）
+         * 前置钩子，依次执行一级目录钩子（如application）、二级目录中间件（如index）
          */
-        public function middlewareBefore(){
+        public function hookBefore(){
             $oldParam = $this->param;
             $oldPost = $this->post;
             $route = $this->route;
 
-            //全局中间件，所有控制器都会执行
+            //全局钩子，所有控制器都会执行
             $FilePath = __DIR__.'/../hook/hookBefore.php';
             if(is_file($FilePath)) {
                 include_once $FilePath;
-                $middlewareBefore = new \hookBefore;
-                //执行全局中间件
-                list($this->param, $this->post) = $middlewareBefore->handle($this, $oldParam, $oldPost);
+                $hookBefore = new \hookBefore;
+                //执行全局钩子
+                list($this->param, $this->post) = $hookBefore->handle($this, $oldParam, $oldPost);
             }
-            //先判断一级目录中间件是否存在
+            //先判断一级目录钩子是否存在
             $oneFilePath = \weiLoader::$type[$route[0]].'hook/hookBefore.php';
             if(is_file($oneFilePath)) {
                 $className = $route[0].'\\hook\\hookBefore';
-                $oneMiddlewareBefore = new $className;
-                //执行一级目录中间件，即该目录下的所有控制器都会执行该中间件
-                list($this->param, $this->post) = $oneMiddlewareBefore->handle($this, $oldParam, $oldPost);
+                $oneHookBefore = new $className;
+                //执行一级目录钩子，即该目录下的所有控制器都会执行该钩子
+                list($this->param, $this->post) = $oneHookBefore->handle($this, $oldParam, $oldPost);
             }
-            //二级目录中间件
+            //二级目录钩子
             $twoFilePath = \weiLoader::$type[$route[0]].$route[1].'/hook/hookBefore.php';
             if(is_file($twoFilePath)) {
                 $className = $route[0] . '\\' . $route[1] . '\\hook\\hookBefore';
-                $twoMiddlewareBefore = new $className;
-                //执行二级目录中间件，即该目录下的所有控制器都会执行该中间件
-                list($this->param, $this->post) = $twoMiddlewareBefore->handle($this, $oldParam, $oldPost);
+                $twoHookBefore = new $className;
+                //执行二级目录钩子，即该目录下的所有控制器都会执行该钩子
+                list($this->param, $this->post) = $twoHookBefore->handle($this, $oldParam, $oldPost);
             }
         }
 
         /**
-         * 后置中间件
+         * 后置钩子
          * @param mixed $res 控制器返回内容
          */
-        public function middlewareAfter($res){
+        public function hookAfter($res){
             $oldRes = $res;
             $route = $this->route;
 
-            //全局中间件，所有控制器都会执行
+            //全局钩子，所有控制器都会执行
             $FilePath = __DIR__.'/../hook/hookAfter.php';
             if(is_file($FilePath)) {
                 include_once $FilePath;
-                $middlewareAfter = new \hookAfter;
-                $res = $middlewareAfter->handle($this, $res);
+                $hookAfter = new \hookAfter;
+                $res = $hookAfter->handle($this, $res);
             }
 
             $oneFilePath = \weiLoader::$type[$route[0]].'hook/hookAfter.php';
             if(is_file($oneFilePath)) {
                 $className = $route[0].'\\hook\\hookAfter';
-                $oneMiddlewareAfter = new $className;
-                $res = $oneMiddlewareAfter->handle($this, $res, $oldRes);
+                $oneHookAfter = new $className;
+                $res = $oneHookAfter->handle($this, $res, $oldRes);
             }
             $twoFilePath = \weiLoader::$type[$route[0]].$route[1].'/hook/hookAfter.php';
             if(is_file($twoFilePath)) {
                 $className = $route[0] . '\\' . $route[1] . '\\hook\\hookAfter';
-                $twoMiddlewareAfter = new $className;
-                $twoMiddlewareAfter->handle($this, $res, $oldRes);
+                $twoHookAfter = new $className;
+                $twoHookAfter->handle($this, $res, $oldRes);
             }
         }
 
