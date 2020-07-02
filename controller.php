@@ -11,7 +11,7 @@
         //参数强制指定格式
         protected $dataType = [
             //支持负数
-            'id'=>'int',
+            //'id'=>'int',
             'uid'=>'int',
             'user_id'=>'int',
             'token'=>'numAndAbc',
