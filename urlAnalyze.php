@@ -11,7 +11,11 @@
          * 返回数组 0=>/顶级/控制器/方法   1=>参数
          */
         public static function analyze(){
-            $urlPathInfo = $_SERVER["QUERY_STRING"];
+            $urlPathInfo = $_SERVER["REQUEST_URI"];
+            $newPathInfo = stristr($urlPathInfo, '?', true);
+            if($newPathInfo){
+                $urlPathInfo = $newPathInfo;
+            }
             //静态识别
             $pathInfo = self::suffix($urlPathInfo);
             //自定义路由处理
@@ -187,7 +191,7 @@
          */
         protected static function filter($array){
             foreach($array as $key=>$value){
-                $array[$key] = preg_replace('/[^0-9a-zA-Z\-_]/', '', $value);
+                $array[$key] = preg_replace('/[^0-9a-zA-Z_]/', '', $value);
             }
             return $array;
         }
