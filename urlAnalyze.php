@@ -1,6 +1,6 @@
 <?php
     namespace wei;
-    use lipowei\configClass\Config; 
+    use tcwei\configClass\Config;
     /**
      * 分析URL
      */

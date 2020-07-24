@@ -1,6 +1,6 @@
 <?php
     
-    use lipowei\configClass\Config;
+    use tcwei\configClass\Config;
     class weiLoader{
         
         /**
