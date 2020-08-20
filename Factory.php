@@ -26,13 +26,43 @@
     }
 
      /**
+      * @param $className
+      * @param string $methodsName
+      * @return array
+      */
+    public static function getMethodParams($className, $methodsName = '__construct') {
+        $class = new \ReflectionClass($className);
+        $paramArr = [];
+        //判断是否存在方法
+        if ($class->hasMethod($methodsName)) {
+            $fuc = $class->getMethod($methodsName);
+            $params = $fuc->getParameters();
+            if (count($params) > 0) {
+                foreach ($params as $key => $param) {
+                    if ($paramClass = $param->getClass()) {
+                        $paramClassName = $paramClass->getName();
+                        $args = self::getMethodParams($paramClassName);
+                        $paramArr[] = (new \ReflectionClass($paramClassName))->newInstanceArgs($args);
+                    }
+                }
+            }
+        }
+        //存放对象的数组
+        return $paramArr;
+    }
+
+     /**
       * 当 Factory 不存在该类对应的获取方法时，尝试从全局中获取并注入 Factory 内
       * @param $className
       * @param mixed ...$params
       * @return mixed
       */
     protected static function searchClass($className, ...$params){
-        return new $className(...$params);
+        $paramArr = self::getMethodParams($className);
+        foreach ($params as $key=>$value){
+            $paramArr[] = $value;
+        }
+        return (new \ReflectionClass($className))->newInstanceArgs($paramArr);
     }
 
  }
