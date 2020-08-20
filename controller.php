@@ -5,7 +5,7 @@
     class controller{
 
         //url pathInfo 参数
-        public $param;
+        public $param = [];
         //post 参数
         public $post;
         //参数强制指定格式
@@ -31,34 +31,37 @@
         public $runHookBefore = true;
         //是否执行后置钩子类，此处和前置钩子类作用一样
         public $runHookAfter = true;
+
         /**
-         * controller constructor.
          * @param array $param 正常url访问时从url内获取的参数
          * @param array $injectPost 在控制器内 new 其他控制器类时手动注入的 Post 参数，原控制器的 post 参数不被继承
          * @param array $route 从url中获的项目入口、次目录、控制器、方法的参数
          */
-        public function __construct($param = [], $injectPost = [], $route = []){
-            $this->param = $param;
-            $this->post = $_POST;
+        public function run($param = [], $injectPost = [], $route = []){
+            if(!empty($param)){
+                $this->param = $param;
+            };
             if($injectPost != []){
                 $this->post = $injectPost;
-            };
-            if($route != []){
-                $this->route = $route;
             }else{
+                $this->post = $_POST;
+            }
+
+            if($route == []){
                 $info = urlAnalyze::analyze();
                 $pathArr = explode('/', substr($info[0], 1));
                 $this->route = [$pathArr[0], $pathArr[1], $pathArr[3]];
+                $route = $this->route;
+            }else{
+                $this->route = $route;
             }
             $this->dataTransform();
-        }
 
-        public function run(){
             if($this->runHookBefore) {
                 //执行前置钩子
                 $this->hookBefore();
             }
-            $route = $this->route;
+
             if(isset($route[3])){
                 $fucName = $route[3];
             }else{

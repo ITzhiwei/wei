@@ -62,7 +62,12 @@
         foreach ($params as $key=>$value){
             $paramArr[] = $value;
         }
-        return (new \ReflectionClass($className))->newInstanceArgs($paramArr);
+        $class = new \ReflectionClass($className);
+        if($class->hasMethod('__construct')) {
+            return $class->newInstanceArgs($paramArr);
+        }else{
+            return $class->newInstance();
+        }
     }
 
  }
