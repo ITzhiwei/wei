@@ -3,7 +3,7 @@
     namespace wei;
 
     class controller{
-        
+
         //url pathInfo 参数
         public $param;
         //post 参数
@@ -64,7 +64,8 @@
             }else{
                 $fucName = $this->fucName;
             }
-            $res = $this->$fucName();
+            $paramArr = Factory::getMethodParams(static::class, $fucName);
+            $res = call_user_func_array([$this, $fucName], $paramArr);
             if($this->runHookAfter) {
                 //执行后置钩子
                 $this->hookAfter($res);
@@ -74,7 +75,7 @@
             }
 
         }
-        
+
         /**
          * 格式强制转化
          */
@@ -307,6 +308,6 @@
                 $value();
             }
         }
-        
+
     }
 ?>
